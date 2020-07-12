@@ -1,0 +1,11 @@
+<aura:component implements="force:hasRecordId,force:lightningQuickAction" access="global" controller='fetchSentiments'>
+     <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	  <aura:attribute name="ShowSpinner" type="Boolean" default = "true" />
+  
+        <div class="slds-text-heading_small"> Your request is in Progress.Please wait. 
+         </div>
+    <div class="exampleHolder">
+        
+        <lightning:spinner alternativeText="Loading" size="small" />
+    </div>
+</aura:component>

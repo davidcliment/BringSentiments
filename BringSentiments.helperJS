@@ -1,0 +1,21 @@
+({
+    getSentiments : function(component, event, helper) {
+        var action = component.get('c.getCaseStatus');
+        action.setParams({
+            CaseId : component.get('v.recordId')
+        });
+        
+       action.setCallback(this, function(response) {
+            if(response.getState() === 'SUCCESS') {
+                 
+                  $A.get("e.force:closeQuickAction").fire();
+                     $A.get('e.force:refreshView').fire();
+                
+            }else {
+                
+            }
+        });
+        $A.enqueueAction(action);
+        
+        },
+})

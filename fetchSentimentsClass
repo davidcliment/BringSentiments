@@ -1,0 +1,49 @@
+public class fetchSentiments {
+    
+    public static String text = '';
+    public static String updateCaseId;
+    public static string sentimentModelId = 'CommunitySentiment';
+    
+    @AuraEnabled
+    public static string getCaseStatus(string CaseId){
+        
+        for(Case selectedCase : [SELECT Id,	Comments,Description FROM Case WHERE ID =: CaseId]){
+            text = selectedCase.Description;
+            system.debug(text);
+            updateCaseId = selectedCase.Id;
+            updateCase(text);
+        }
+        return 'Success';
+    }
+    public static void updateCase(String text){
+        
+        Http http = new Http();
+        HttpRequest req = new HttpRequest();
+        req.setMethod( 'POST' );
+        req.setEndpoint( 'https://api.einstein.ai/v2/language/sentiment' );
+        req.setHeader( 'Authorization', 'Bearer ' + 'CFE7GWVPDWZ6AM37AGJAZZXP6FIWXU35ZU7ODWVHRNBKBGX2SUG47BHHI3Y4QPXJTSWQQVJYZZ52UNRWTA3S4OA6UEEH6VVP5KRZSFA' );
+        req.setHeader( 'Content-type', 'application/json' );
+        
+        String body = '{\"modelId\":\"'+ sentimentModelId + '\",\"document\":\"' + text + '\"}';
+        req.setBody( body );
+        
+        HTTPResponse res = http.send( req );
+        
+        SentimentResponse resp = ( SentimentResponse ) JSON.deserialize( res.getBody(), SentimentResponse.class );
+        Map<Double,String> maplabelprobablity = new Map<Double,String>();
+        List<SentimentResponse.Probabilities > labelWithProbablity = new List<SentimentResponse.Probabilities >();
+        for(SentimentResponse.Probabilities selected : resp.Probabilities){
+            SentimentResponse.Probabilities selteced = new SentimentResponse.Probabilities();
+            selteced.label = selected.label;
+            selteced.probability = selected.probability;
+            maplabelprobablity.put(selteced.probability,selteced.label);
+            labelWithProbablity.add(selteced);
+        }
+        if(labelWithProbablity.size()>0){
+            case updateCase = new case();
+            updateCase.Id = updateCaseId;
+            updateCase.sam_dev__Sentiments__c = maplabelprobablity.get(labelWithProbablity[0].probability);
+            update updateCase;
+        }          
+    }
+}
